@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 
 from project_4.map_maker import *
 from sensor_msgs.msg import LaserScan
@@ -23,8 +23,8 @@ transformer.setTransform(transform)
 m = MapMaker(origin, origin, resolution, size, size, transformer)
 
 rospy.init_node('map_maker')
-pub1 = rospy.Publisher('/scan', LaserScan)
-pub2 = rospy.Publisher('/map', OccupancyGrid)
+pub1 = rospy.Publisher('/scan', LaserScan, queue_size=10)
+pub2 = rospy.Publisher('/map', OccupancyGrid, queue_size=10)
 br = tf.TransformBroadcaster()
 
 r = rospy.Rate(50)
