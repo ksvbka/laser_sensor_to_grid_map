@@ -6,7 +6,6 @@ from geometry_msgs.msg import PointStamped
 from math import sin, cos, degrees
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-import numpy as np
 
 # ------------------------------------------------------------------------------
 # MapMaker class
@@ -31,6 +30,7 @@ class MapMaker:
     self.grid.data = [-1] * (size_x * size_y)
     self.numScansReceived = 0
 
+    # Current positon get from odometry
     self.x, self.y, self.theta = 0.0, 0.0, 0.0
     # Insert additional code here if needed
 
@@ -64,7 +64,7 @@ class MapMaker:
   def process_scan(self, msg):
     range_max = msg.range_max
     dist = msg.ranges
-    ang = np.arange(msg.angle_min, msg.angle_max + msg.angle_increment, msg.angle_increment)
+    ang = [ msg.angle_min + i * msg.angle_increment for i in range(len(dist)) ]
 
     x0, y0 = self.to_grid(self.x, self.y)
 
