@@ -6,6 +6,7 @@ from geometry_msgs.msg import PointStamped
 from math import sin, cos, degrees
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import numpy as np
 
 # ------------------------------------------------------------------------------
 # MapMaker class
@@ -30,6 +31,7 @@ class MapMaker:
     self.grid.data = [-1] * (size_x * size_y)
     self.numScansReceived = 0
 
+    self.x, self.y, self.theta = 0.0, 0.0, 0.0
     # Insert additional code here if needed
 
   # ----------------------------------------------------------------------------
@@ -51,16 +53,36 @@ class MapMaker:
   # ----------------------------------------------------------------------------
   # Process odometry message. You code should go here.
   def process_odom(self, msg):
-
-    None
+    self.x = msg.pose.pose.position.x
+    self.y = msg.pose.pose.position.y
+    orientation = msg.pose.pose.orientation
+    orientation = (orientation.x, orientation.y, orientation.z, orientation.w)
+    self.theta = euler_from_quaternion(orientation)[2]
 
   # ----------------------------------------------------------------------------
   # Process laserscan message. You code should go here.
   def process_scan(self, msg):
+    range_max = msg.range_max
+    dist = msg.ranges
+    ang = np.arange(msg.angle_min, msg.angle_max + msg.angle_increment, msg.angle_increment)
+
+    x0, y0 = self.to_grid(self.x, self.y)
+
+    for i in range(len(dist)):
+      # transform from odom to map
+      xw = dist[i] * cos(ang[i] + self.theta) + self.x
+      yw = dist[i] * sin(ang[i] + self.theta) + self.y
+      xg, yg = self.to_grid(xw, yw)
+
+      # Mark as free
+      for xi, yi in bresenham(x0, y0, xg, yg):
+        self.grid.data[to_index(xi, yi, self.size_x)] = 0
+
+      # Mark as occupied
+      if dist[i] < range_max:
+        self.grid.data[to_index(xg, yg, self.size_x)] = 100
 
     self.numScansReceived+=1
-
-    None        
 
   # ----------------------------------------------------------------------------
   # Visualize robot pose, current laserscan, free map cells and occupied map
